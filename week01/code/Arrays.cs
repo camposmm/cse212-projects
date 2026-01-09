@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 public static class Arrays
 {
     /// <summary>
@@ -13,7 +15,21 @@ public static class Arrays
         // step by step before you write the code. The plan should be clear enough that it could
         // be implemented by another person.
 
-        return []; // replace this return statement with your own
+        // PLAN:
+        // 1) Create a new double array of size 'length'.
+        // 2) Loop from i = 0 to i < length.
+        // 3) Compute the next multiple as number * (i + 1).
+        // 4) Store it in the array at index i.
+        // 5) Return the array.
+
+        double[] results = new double[length];
+
+        for (int i = 0; i < length; i++)
+        {
+            results[i] = number * (i + 1);
+        }
+
+        return results;
     }
 
     /// <summary>
@@ -29,5 +45,32 @@ public static class Arrays
         // Remember: Using comments in your program, write down your process for solving this problem
         // step by step before you write the code. The plan should be clear enough that it could
         // be implemented by another person.
+
+        // PLAN:
+        // 1) Rotating right by 'amount' means the last 'amount' elements move to the front.
+        // 2) Find where the "tail" starts: splitIndex = data.Count - amount.
+        // 3) Make two slices:
+        //    tail = data.GetRange(splitIndex, amount)  (last 'amount' items)
+        //    head = data.GetRange(0, splitIndex)       (everything before tail)
+        // 4) Clear the original list.
+        // 5) Add tail first, then head back into data.
+
+        int n = data.Count;
+
+        // amount is guaranteed 1..n by the assignment/tests, but this makes it safe anyway
+        int rotate = amount % n;
+
+        // If rotate is 0 (e.g., amount == n), list stays the same (matches TestRotateListRight_Rotate9)
+        if (rotate == 0)
+            return;
+
+        int splitIndex = n - rotate;
+
+        List<int> tail = data.GetRange(splitIndex, rotate);
+        List<int> head = data.GetRange(0, splitIndex);
+
+        data.Clear();
+        data.AddRange(tail);
+        data.AddRange(head);
     }
 }
