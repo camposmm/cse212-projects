@@ -11,9 +11,9 @@ public class TakingTurnsQueueTests
     // Scenario: Create a queue with the following people and turns: Bob (2), Tim (5), Sue (3) and
     // run until the queue is empty
     // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, Sue, Tim, Tim
-    // Defect(s) Found: The queue returned people in the wrong order (ex: Sue was returned when Bob was expected).
-    // Root cause was PersonQueue was not true FIFO (it was enqueueing/dequeueing from the wrong end of the list).
-    // After fixing PersonQueue to enqueue at the back and dequeue from the front, this test passed.
+    // Defect(s) Found: FAILED originally. The queue returned the wrong person order (ex: Sue came out when Bob was expected).
+    // Root cause was FIFO order not being preserved in the underlying queue implementation (PersonQueue was behaving like LIFO).
+    // Fix applied: Corrected PersonQueue to behave like a real queue (enqueue at back, dequeue from front) / corrected ordering bug.
     public void TestTakingTurnsQueue_FiniteRepetition()
     {
         var bob = new Person("Bob", 2);
@@ -45,9 +45,9 @@ public class TakingTurnsQueueTests
     // Scenario: Create a queue with the following people and turns: Bob (2), Tim (5), Sue (3)
     // After running 5 times, add George with 3 turns.  Run until the queue is empty.
     // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, George, Sue, Tim, George, Tim, George
-    // Defect(s) Found: The rotation order was incorrect after multiple turns (returned Sue when Bob was expected).
-    // Root cause was PersonQueue not behaving as FIFO, which breaks the circular order.
-    // Fixing PersonQueue FIFO behavior also fixed this test.
+    // Defect(s) Found: FAILED originally. After adding George, the next values were in the wrong order.
+    // Root cause was the same FIFO bug in the underlying queue implementation (PersonQueue) causing incorrect sequencing.
+    // Fix applied: Corrected PersonQueue behavior so items leave in FIFO order and re-enqueue works correctly.
     public void TestTakingTurnsQueue_AddPlayerMidway()
     {
         var bob = new Person("Bob", 2);
@@ -89,9 +89,9 @@ public class TakingTurnsQueueTests
     // Scenario: Create a queue with the following people and turns: Bob (2), Tim (Forever), Sue (3)
     // Run 10 times.
     // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, Sue, Tim, Tim
-    // Defect(s) Found: A person with turns = 0 (infinite) was not being re-enqueued correctly.
-    // The logic treated 0 turns like the person was out of turns, so Tim did not behave as "forever".
-    // Fix: Updated GetNextPerson so turns <= 0 always re-enqueue and turns value is NOT modified.
+    // Defect(s) Found: FAILED originally due to incorrect order (FIFO problem) and/or infinite-turn handling not matching expected rotation.
+    // Root cause: queue order bug prevented expected cycling; infinite turns must remain unchanged (0 stays 0).
+    // Fix applied: Correct queue behavior and ensure infinite turns are never decremented/changed.
     public void TestTakingTurnsQueue_ForeverZero()
     {
         var timTurns = 0;
@@ -122,9 +122,9 @@ public class TakingTurnsQueueTests
     // Scenario: Create a queue with the following people and turns: Tim (Forever), Sue (3)
     // Run 10 times.
     // Expected Result: Tim, Sue, Tim, Sue, Tim, Sue, Tim, Tim, Tim, Tim
-    // Defect(s) Found: A person with turns < 0 (infinite) was not staying in the queue forever.
-    // The logic incorrectly removed the person instead of re-enqueuing them.
-    // Fix: Updated GetNextPerson so turns <= 0 always re-enqueue and turns value is NOT modified.
+    // Defect(s) Found: FAILED originally due to incorrect order (FIFO bug) and/or infinite-turn handling.
+    // Root cause: queue order bug caused Sue to appear when Tim was expected.
+    // Fix applied: Correct queue FIFO behavior and ensure negative turns remain unchanged (still infinite).
     public void TestTakingTurnsQueue_ForeverNegative()
     {
         var timTurns = -3;
@@ -151,8 +151,7 @@ public class TakingTurnsQueueTests
     [TestMethod]
     // Scenario: Try to get the next person from an empty queue
     // Expected Result: Exception should be thrown with appropriate error message.
-    // Defect(s) Found: None. This test passed once GetNextPerson correctly threw InvalidOperationException
-    // with the message "No one in the queue." when the queue is empty.
+    // Defect(s) Found: PASSED (no defects). Correctly throws InvalidOperationException with message "No one in the queue."
     public void TestTakingTurnsQueue_Empty()
     {
         var players = new TakingTurnsQueue();
